@@ -1,0 +1,81 @@
+Dear students,
+
+For a Final Year [ AIML , CS , AIDS ] Project Phase - I _ First Review, the purpose is to verify that each student team has selected a suitable problem, understood the domain, completed preliminary literature study, and has a feasible implementation plan. It will be conducted on 27,28th August 2026 [  Thursday , Friday ].
+
+The following Documents to be prepared for first Review
+
+1.Project Title
+	Final / proposed title that clearly reflects the work
+
+2.Team Details
+	Student names, Register numbers, Department, guide name
+
+3.Problem Statement
+	Clear description of the Real-world / Research problem being addressed
+
+4.Project Abstract
+	200–300 words covering problem, proposed approach, technology and expected result
+
+5.Objectives
+	3–5 measurable project objectives
+
+6.Domain Identification
+	AI/ML, Cybersecurity, IoT, Cloud, Data Science, Web, Blockchain, etc.
+
+7.Literature Survey
+	Minimum 5–10 recent research papers, preferably from the last five years
+
+8.Research Gap / Existing-System Gap
+	Limitations identified from literature or existing solutions
+
+9.Proposed Solution
+	Brief explanation of how the team proposes to solve the identified problem
+
+10.Innovation / Novelty
+	What is new or improved compared with existing approaches
+
+11.Methodology
+	Proposed methods, algorithms, models, frameworks or implementation approach
+
+12.System Architecture
+	Preliminary block diagram / architecture showing major modules
+
+13.Hardware & Software Requirements
+	Languages, frameworks, datasets, cloud services, hardware, sensors, GPU, etc.
+
+14.Dataset / Data Source
+	Dataset details for AI/ML projects or proposed data collection methodology
+
+15.Expected Outcome
+	Software/product/model/prototype/research output expected at completion
+
+16.Project Timeline
+	Phase-wise plan with milestones, preferably as a Gantt chart
+
+17.Work Distribution
+	Individual responsibility of each team member
+
+18.References
+	Research papers, datasets and other technical sources in IEEE format
+
+19.Project Review PPT
+	About 8–12 slides summarizing the above
+
+20.Guide Approval
+	Title / Problem statement approved and signed by the project guide
+
+
+
+
+*** The materials to be submitted during the review are ***
+
+1.Softcopy of PPT 
+	The Suggested content for First Review PPT.
+	A 10-slide presentation:
+	Title → Problem Statement → Motivation → Literature Survey → Research Gap → Objectives → 	Proposed Solution → Architecture/Methodology → Expected Outcome & Timeline → References
+
+2. All the above said 20 points to be prepared , one copy print out along with the guide Approval sign ,	to be submitted during the Review.
+
+3. Submit the 5 recent research papers related to your work ( These papers you can download from The 	library [ Dr.Sekar ,will help you to download the papers ] & take print out of all 5 	papers.(front & back print out)).
+
+4. Guide Approval form ( I will forward the format soon ).

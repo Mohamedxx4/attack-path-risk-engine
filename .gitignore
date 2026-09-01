@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project secrets
+.env
+*.pem
+aws_credentials.txt
+node_modules/
