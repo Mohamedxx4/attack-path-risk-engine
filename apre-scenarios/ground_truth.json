@@ -1,0 +1,80 @@
+{
+  "description": "Expected APRE results for the seeded sandbox scenarios. Names are IAM names (prefix 'apre-'). This file is the answer key used to measure detection (true positives) and false alarms (decoys) in Phase II evaluation.",
+  "version": 1,
+  "expected_paths": [
+    {
+      "id": "S1",
+      "title": "Role chain from intern to sensitive S3 data",
+      "technique": "Transitive sts:AssumeRole chaining",
+      "entry_point": "apre-intern",
+      "target": "apre-sensitive-data-<suffix> (S3 bucket)",
+      "hops": [
+        {"from": "apre-intern", "to": "apre-ci-role", "via": "sts:AssumeRole (permission granted through group apre-interns; role trusts intern)"},
+        {"from": "apre-ci-role", "to": "apre-data-role", "via": "sts:AssumeRole (data role trusts ci-role)"},
+        {"from": "apre-data-role", "to": "apre-sensitive-data-<suffix>", "via": "s3:GetObject"}
+      ],
+      "hop_count": 3,
+      "impact": "Read access to sensitive data",
+      "should_be_detected": true
+    },
+    {
+      "id": "S2",
+      "title": "Support user can rewrite own policy to become admin",
+      "technique": "iam:CreatePolicyVersion on a policy attached to self",
+      "reference": "Rhino Security Labs IAM privesc method 1; pathfinding.cloud IAM-001",
+      "entry_point": "apre-support",
+      "target": "Full account administrator (effective)",
+      "hops": [
+        {"from": "apre-support", "to": "apre-support-policy", "via": "attached managed policy"},
+        {"from": "apre-support-policy", "to": "ADMIN", "via": "iam:CreatePolicyVersion on itself"}
+      ],
+      "hop_count": 1,
+      "impact": "Full account takeover",
+      "should_be_detected": true
+    },
+    {
+      "id": "S3",
+      "title": "Deployer can run code as an admin role through Lambda",
+      "technique": "iam:PassRole + lambda:CreateFunction + lambda:InvokeFunction",
+      "reference": "Rhino Security Labs IAM privesc method 15",
+      "entry_point": "apre-deployer",
+      "target": "apre-lambda-admin-role (AdministratorAccess)",
+      "hops": [
+        {"from": "apre-deployer", "to": "apre-lambda-admin-role", "via": "iam:PassRole to a role trusting lambda.amazonaws.com, plus permission to create and invoke functions"}
+      ],
+      "required_conditions": [
+        "deployer has iam:PassRole on apre-lambda-admin-role",
+        "apre-lambda-admin-role trusts lambda.amazonaws.com",
+        "deployer has lambda:CreateFunction",
+        "deployer has lambda:InvokeFunction"
+      ],
+      "hop_count": 1,
+      "impact": "Full account takeover",
+      "should_be_detected": true
+    }
+  ],
+  "decoys": [
+    {
+      "id": "C1",
+      "principal": "apre-auditor",
+      "looks_like": "S3 (PassRole on admin role)",
+      "why_not_exploitable": "Has iam:PassRole but no lambda:CreateFunction / InvokeFunction or any other service that could use the role.",
+      "should_be_detected": false
+    },
+    {
+      "id": "C2",
+      "principal": "apre-contractor",
+      "looks_like": "S1 (assume data role, read sensitive bucket)",
+      "why_not_exploitable": "Identity policy allows sts:AssumeRole on apre-data-role, but the role's trust policy does not trust the contractor. Both sides are required.",
+      "should_be_detected": false
+    },
+    {
+      "id": "C3",
+      "principal": "apre-analyst",
+      "looks_like": "S2 (CreatePolicyVersion)",
+      "why_not_exploitable": "The editable policy (apre-unattached-policy) is attached to no principal, so editing it grants nothing.",
+      "should_be_detected": false
+    }
+  ],
+  "scoring_inputs_note": "Impact and likelihood values are assigned by the risk-scoring engine, not here. This file records only what exists and whether it is exploitable."
+}
