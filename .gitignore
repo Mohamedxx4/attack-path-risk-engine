@@ -222,3 +222,6 @@ __marimo__/
 *.pem
 aws_credentials.txt
 node_modules/
+
+cartography-venv/
+*.zip
