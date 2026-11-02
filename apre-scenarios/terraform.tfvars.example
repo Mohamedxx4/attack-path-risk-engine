@@ -1,0 +1,4 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is git-ignored.
+expected_account_id = "123456789012" # your SANDBOX account ID (12 digits)
+aws_profile         = "apre-admin"
+aws_region          = "ap-south-1"
