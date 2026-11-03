@@ -1,0 +1,147 @@
+{
+  "_comment": "Same paths as discovered_paths.example.json, after the scoring engine runs. The impact/likelihood/risk_score/severity/rationale values here are ILLUSTRATIVE placeholders so the dashboard can be built against populated data. Rahsheetha's engine defines the real numbers and the rule that produces them.",
+  "schema_version": "1.0",
+  "metadata": {
+    "generated_at": "2026-11-02T18:05:00+05:30",
+    "account_id": "451513982258",
+    "source": "apre-scoring",
+    "neo4j_database": "2276c01d",
+    "path_count": 3
+  },
+  "paths": [
+    {
+      "id": "apre-path-001",
+      "technique": "role_chaining",
+      "title": "Low-privilege intern reaches sensitive S3 data via a two-role chain",
+      "entry_point": { "name": "apre-intern", "arn": "arn:aws:iam::451513982258:user/apre-intern", "type": "AWSUser" },
+      "target": {
+        "name": "apre-sensitive-data-bf097a",
+        "arn": "arn:aws:s3:::apre-sensitive-data-bf097a",
+        "type": "AWSS3Bucket",
+        "description": "Bucket holding sensitive customer records",
+        "data_sensitivity": "high"
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": { "name": "apre-intern", "type": "AWSUser" },
+          "to": { "name": "apre-ci-role", "type": "AWSRole" },
+          "action": "sts:AssumeRole",
+          "mechanism": "The intern's group (apre-interns) is allowed to assume apre-ci-role, and apre-ci-role's trust policy trusts the intern.",
+          "evidence_edges": ["MEMBER_AWS_GROUP", "POLICY", "STATEMENT", "TRUSTS_AWS_PRINCIPAL"]
+        },
+        {
+          "step": 2,
+          "from": { "name": "apre-ci-role", "type": "AWSRole" },
+          "to": { "name": "apre-data-role", "type": "AWSRole" },
+          "action": "sts:AssumeRole",
+          "mechanism": "The CI role is allowed to assume apre-data-role, and the data role trusts the CI role.",
+          "evidence_edges": ["POLICY", "STATEMENT", "TRUSTS_AWS_PRINCIPAL", "STS_ASSUMEROLE_ALLOW"]
+        },
+        {
+          "step": 3,
+          "from": { "name": "apre-data-role", "type": "AWSRole" },
+          "to": { "name": "apre-sensitive-data-bf097a", "type": "AWSS3Bucket" },
+          "action": "s3:GetObject",
+          "mechanism": "The data role is allowed to read objects in the sensitive bucket.",
+          "evidence_edges": ["CAN_READ"]
+        }
+      ],
+      "hop_count": 3,
+      "signals": {
+        "reaches_admin": false,
+        "target_category": "sensitive_data",
+        "data_sensitivity": "high",
+        "entry_point_privilege": "low",
+        "required_preconditions": [],
+        "single_dangerous_permission": false,
+        "notes": "No single policy in the chain looks dangerous on its own."
+      },
+      "scoring": {
+        "impact": 8,
+        "likelihood": 5,
+        "risk_score": 400,
+        "severity": "high",
+        "rationale": "Reaches highly sensitive data (high impact) through a realistic multi-hop chain available to a low-privilege user (moderate likelihood)."
+      }
+    },
+    {
+      "id": "apre-path-002",
+      "technique": "policy_self_escalation",
+      "title": "Support user grants itself administrator rights by editing its own policy",
+      "entry_point": { "name": "apre-support", "arn": "arn:aws:iam::451513982258:user/apre-support", "type": "AWSUser" },
+      "target": {
+        "name": "account-administrator",
+        "arn": "arn:aws:iam::451513982258:root",
+        "type": "AWSRole",
+        "description": "Effective full administrator over the account"
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": { "name": "apre-support", "type": "AWSUser" },
+          "to": { "name": "apre-support-policy", "type": "AWSPolicy" },
+          "action": "iam:CreatePolicyVersion",
+          "mechanism": "The support user can publish a new default version of its own attached policy, writing one that allows everything.",
+          "evidence_edges": ["POLICY", "STATEMENT"]
+        }
+      ],
+      "hop_count": 1,
+      "signals": {
+        "reaches_admin": true,
+        "target_category": "admin_privileges",
+        "data_sensitivity": null,
+        "entry_point_privilege": "low",
+        "required_preconditions": [],
+        "single_dangerous_permission": true,
+        "notes": "iam:CreatePolicyVersion on the user's OWN attached policy."
+      },
+      "scoring": {
+        "impact": 10,
+        "likelihood": 8,
+        "risk_score": 800,
+        "severity": "critical",
+        "rationale": "Single-step path to full account takeover with no preconditions; trivially exploitable."
+      }
+    },
+    {
+      "id": "apre-path-003",
+      "technique": "passrole_lambda",
+      "title": "Deployer runs code as an admin role by passing it to a Lambda function",
+      "entry_point": { "name": "apre-deployer", "arn": "arn:aws:iam::451513982258:user/apre-deployer", "type": "AWSUser" },
+      "target": {
+        "name": "apre-lambda-admin-role",
+        "arn": "arn:aws:iam::451513982258:role/apre-lambda-admin-role",
+        "type": "AWSRole",
+        "description": "Role with AdministratorAccess"
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": { "name": "apre-deployer", "type": "AWSUser" },
+          "to": { "name": "apre-lambda-admin-role", "type": "AWSRole" },
+          "action": "iam:PassRole",
+          "mechanism": "The deployer can hand the admin role to a new Lambda function it creates and invokes; the function's code runs with administrator rights.",
+          "evidence_edges": ["CAN_PASS_ROLE", "POLICY", "STATEMENT", "TRUSTS_AWS_PRINCIPAL"]
+        }
+      ],
+      "hop_count": 1,
+      "signals": {
+        "reaches_admin": true,
+        "target_category": "admin_privileges",
+        "data_sensitivity": null,
+        "entry_point_privilege": "low",
+        "required_preconditions": ["lambda:CreateFunction", "lambda:InvokeFunction"],
+        "single_dangerous_permission": false,
+        "notes": "Needs three permissions together (PassRole + CreateFunction + InvokeFunction)."
+      },
+      "scoring": {
+        "impact": 10,
+        "likelihood": 6,
+        "risk_score": 600,
+        "severity": "high",
+        "rationale": "Full account takeover, but requires three permissions in combination, so slightly less trivial than path-002."
+      }
+    }
+  ]
+}

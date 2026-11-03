@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Mohamedxx4/attack-path-risk-engine/contract/discovered_paths.schema.json",
+  "title": "APRE Path Contract",
+  "description": "The JSON shape emitted by the discovery module, enriched by the scoring engine, and consumed by the dashboard. v1.0.",
+  "type": "object",
+  "required": ["schema_version", "metadata", "paths"],
+  "additionalProperties": false,
+  "properties": {
+    "_comment": { "type": "string", "description": "Optional human note; ignored by consumers." },
+    "schema_version": { "const": "1.0" },
+    "metadata": {
+      "type": "object",
+      "required": ["generated_at", "account_id", "source", "path_count"],
+      "additionalProperties": true,
+      "properties": {
+        "generated_at": { "type": "string", "description": "ISO 8601 timestamp" },
+        "account_id": { "type": "string" },
+        "source": { "type": "string", "description": "e.g. apre-discovery or apre-scoring" },
+        "neo4j_database": { "type": "string" },
+        "path_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "paths": { "type": "array", "items": { "$ref": "#/$defs/path" } }
+  },
+  "$defs": {
+    "principalRef": {
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "arn": { "type": "string" },
+        "type": { "type": "string", "description": "Cartography node label, e.g. AWSUser, AWSRole, AWSGroup" }
+      }
+    },
+    "resourceRef": {
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "arn": { "type": "string" },
+        "type": { "type": "string", "description": "e.g. AWSS3Bucket, AWSRole (for an admin-privileges target)" },
+        "description": { "type": "string", "description": "Plain-language, for the dashboard/panel" },
+        "data_sensitivity": { "enum": ["high", "medium", "low", null] }
+      }
+    },
+    "hop": {
+      "type": "object",
+      "required": ["step", "from", "to", "action", "mechanism"],
+      "additionalProperties": false,
+      "properties": {
+        "step": { "type": "integer", "minimum": 1 },
+        "from": { "$ref": "#/$defs/principalRef" },
+        "to": { "anyOf": [ { "$ref": "#/$defs/principalRef" }, { "$ref": "#/$defs/resourceRef" } ] },
+        "action": { "type": "string", "description": "AWS action enabling the hop, e.g. sts:AssumeRole, s3:GetObject" },
+        "mechanism": { "type": "string", "description": "Plain-language why the hop is possible" },
+        "evidence_edges": { "type": "array", "items": { "type": "string" }, "description": "Neo4j relationship types proving the hop" }
+      }
+    },
+    "signals": {
+      "type": "object",
+      "required": ["reaches_admin", "target_category", "entry_point_privilege", "single_dangerous_permission"],
+      "additionalProperties": true,
+      "properties": {
+        "reaches_admin": { "type": "boolean" },
+        "target_category": { "enum": ["admin_privileges", "sensitive_data", "other"] },
+        "data_sensitivity": { "enum": ["high", "medium", "low", null] },
+        "entry_point_privilege": { "enum": ["low", "medium", "high"] },
+        "required_preconditions": { "type": "array", "items": { "type": "string" } },
+        "single_dangerous_permission": { "type": "boolean" },
+        "notes": { "type": "string" }
+      }
+    },
+    "scoring": {
+      "type": "object",
+      "required": ["impact", "likelihood", "risk_score", "severity"],
+      "additionalProperties": false,
+      "properties": {
+        "impact": { "type": ["integer", "null"], "minimum": 1, "maximum": 10 },
+        "likelihood": { "type": ["integer", "null"], "minimum": 1, "maximum": 10 },
+        "risk_score": { "type": ["integer", "null"], "minimum": 0, "maximum": 1000 },
+        "severity": { "enum": ["critical", "high", "medium", "low", null] },
+        "rationale": { "type": ["string", "null"] }
+      }
+    },
+    "path": {
+      "type": "object",
+      "required": ["id", "technique", "title", "entry_point", "target", "hops", "hop_count", "signals", "scoring"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^apre-path-[0-9]{3,}$" },
+        "technique": { "type": "string", "description": "role_chaining | policy_self_escalation | passrole_lambda | ..." },
+        "title": { "type": "string" },
+        "entry_point": { "$ref": "#/$defs/principalRef" },
+        "target": { "$ref": "#/$defs/resourceRef" },
+        "hops": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/hop" } },
+        "hop_count": { "type": "integer", "minimum": 1 },
+        "signals": { "$ref": "#/$defs/signals" },
+        "scoring": { "$ref": "#/$defs/scoring" }
+      }
+    }
+  }
+}
