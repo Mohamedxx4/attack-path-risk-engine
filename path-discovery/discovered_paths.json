@@ -1,0 +1,221 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "generated_at": "2026-11-03T13:31:44.346400+00:00",
+    "account_id": "451513982258",
+    "source": "apre-discovery",
+    "neo4j_database": "2276c01d",
+    "path_count": 3
+  },
+  "paths": [
+    {
+      "id": "apre-path-001",
+      "technique": "role_chaining",
+      "title": "apre-intern can reach apre-sensitive-data-bf097a through a 2-role assume-role chain",
+      "entry_point": {
+        "name": "apre-intern",
+        "type": "AWSUser",
+        "arn": "arn:aws:iam::451513982258:user/apre-intern"
+      },
+      "target": {
+        "name": "apre-sensitive-data-bf097a",
+        "type": "AWSS3Bucket",
+        "arn": "arn:aws:s3:::apre-sensitive-data-bf097a",
+        "description": "Amazon S3 bucket holding sensitive data",
+        "data_sensitivity": "high"
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": {
+            "name": "apre-intern",
+            "type": "AWSUser",
+            "arn": "arn:aws:iam::451513982258:user/apre-intern"
+          },
+          "to": {
+            "name": "apre-ci-role",
+            "type": "AWSRole",
+            "arn": "arn:aws:iam::451513982258:role/apre-ci-role"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "apre-ci-role trusts apre-intern, and apre-intern is allowed to assume it (the permission comes through a group it belongs to). This hop was reconstructed from the role's trust policy and the identity's permission, because Cartography did not create the assume-role edge.",
+          "evidence_edges": [
+            "TRUSTS_AWS_PRINCIPAL",
+            "POLICY",
+            "STATEMENT",
+            "MEMBER_AWS_GROUP"
+          ]
+        },
+        {
+          "step": 2,
+          "from": {
+            "name": "apre-ci-role",
+            "type": "AWSRole",
+            "arn": "arn:aws:iam::451513982258:role/apre-ci-role"
+          },
+          "to": {
+            "name": "apre-data-role",
+            "type": "AWSRole",
+            "arn": "arn:aws:iam::451513982258:role/apre-data-role"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "apre-data-role trusts apre-ci-role, and apre-ci-role is allowed to assume it.",
+          "evidence_edges": [
+            "TRUSTS_AWS_PRINCIPAL",
+            "POLICY",
+            "STATEMENT",
+            "STS_ASSUMEROLE_ALLOW"
+          ]
+        },
+        {
+          "step": 3,
+          "from": {
+            "name": "apre-data-role",
+            "type": "AWSRole",
+            "arn": "arn:aws:iam::451513982258:role/apre-data-role"
+          },
+          "to": {
+            "name": "apre-sensitive-data-bf097a",
+            "type": "AWSS3Bucket",
+            "arn": "arn:aws:s3:::apre-sensitive-data-bf097a"
+          },
+          "action": "s3:GetObject",
+          "mechanism": "apre-data-role is allowed to read objects in apre-sensitive-data-bf097a.",
+          "evidence_edges": [
+            "CAN_READ"
+          ]
+        }
+      ],
+      "hop_count": 3,
+      "signals": {
+        "reaches_admin": false,
+        "target_category": "sensitive_data",
+        "data_sensitivity": "high",
+        "entry_point_privilege": "low",
+        "required_preconditions": [],
+        "single_dangerous_permission": false,
+        "notes": "No single permission in the chain is dangerous on its own; the risk comes from the combination. Reconstructed (absent from Cartography's edges): hop 1 (apre-intern->apre-ci-role) [Finding #1]."
+      },
+      "scoring": {
+        "impact": null,
+        "likelihood": null,
+        "risk_score": null,
+        "severity": null,
+        "rationale": null
+      }
+    },
+    {
+      "id": "apre-path-002",
+      "technique": "policy_self_escalation",
+      "title": "apre-support can escalate to administrator by rewriting its own policy",
+      "entry_point": {
+        "name": "apre-support",
+        "type": "AWSUser",
+        "arn": "arn:aws:iam::451513982258:user/apre-support"
+      },
+      "target": {
+        "name": "account-administrator",
+        "type": "AWSAccount",
+        "arn": "arn:aws:iam::451513982258:root",
+        "description": "Effective full administrator over the AWS account"
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": {
+            "name": "apre-support",
+            "type": "AWSUser",
+            "arn": "arn:aws:iam::451513982258:user/apre-support"
+          },
+          "to": {
+            "name": "apre-support-policy",
+            "type": "AWSPolicy",
+            "arn": "arn:aws:iam::451513982258:policy/apre-support-policy"
+          },
+          "action": "iam:CreatePolicyVersion",
+          "mechanism": "apre-support can publish a new default version of its own attached policy (apre-support-policy). By writing a version that allows every action, it makes itself an administrator.",
+          "evidence_edges": [
+            "POLICY",
+            "STATEMENT"
+          ]
+        }
+      ],
+      "hop_count": 1,
+      "signals": {
+        "reaches_admin": true,
+        "target_category": "admin_privileges",
+        "data_sensitivity": null,
+        "entry_point_privilege": "low",
+        "required_preconditions": [],
+        "single_dangerous_permission": true,
+        "notes": "iam:CreatePolicyVersion on the principal's OWN attached policy. (Decoy C3 has the same action on a policy attached to no one and is correctly not reported.)"
+      },
+      "scoring": {
+        "impact": null,
+        "likelihood": null,
+        "risk_score": null,
+        "severity": null,
+        "rationale": null
+      }
+    },
+    {
+      "id": "apre-path-003",
+      "technique": "passrole_lambda",
+      "title": "apre-deployer can run code as apre-lambda-admin-role via PassRole + Lambda",
+      "entry_point": {
+        "name": "apre-deployer",
+        "type": "AWSUser",
+        "arn": "arn:aws:iam::451513982258:user/apre-deployer"
+      },
+      "target": {
+        "name": "apre-lambda-admin-role",
+        "type": "AWSRole",
+        "arn": "arn:aws:iam::451513982258:role/apre-lambda-admin-role",
+        "description": "Role with administrator access"
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": {
+            "name": "apre-deployer",
+            "type": "AWSUser",
+            "arn": "arn:aws:iam::451513982258:user/apre-deployer"
+          },
+          "to": {
+            "name": "apre-lambda-admin-role",
+            "type": "AWSRole",
+            "arn": "arn:aws:iam::451513982258:role/apre-lambda-admin-role"
+          },
+          "action": "iam:PassRole",
+          "mechanism": "apre-deployer can hand apre-lambda-admin-role to a new Lambda function it creates and invokes; the function's code then runs with that role's permissions.",
+          "evidence_edges": [
+            "CAN_PASS_ROLE",
+            "POLICY",
+            "STATEMENT",
+            "TRUSTS_AWS_PRINCIPAL"
+          ]
+        }
+      ],
+      "hop_count": 1,
+      "signals": {
+        "reaches_admin": true,
+        "target_category": "admin_privileges",
+        "data_sensitivity": null,
+        "entry_point_privilege": "low",
+        "required_preconditions": [
+          "lambda:CreateFunction",
+          "lambda:InvokeFunction"
+        ],
+        "single_dangerous_permission": false,
+        "notes": "Needs three permissions together (PassRole + CreateFunction + InvokeFunction). (Decoy C1 can pass the role but cannot create/invoke a function, and is correctly not reported.)"
+      },
+      "scoring": {
+        "impact": null,
+        "likelihood": null,
+        "risk_score": null,
+        "severity": null,
+        "rationale": null
+      }
+    }
+  ]
+}
