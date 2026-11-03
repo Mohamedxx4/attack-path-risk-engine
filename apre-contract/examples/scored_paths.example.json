@@ -1,5 +1,5 @@
 {
-  "_comment": "Same paths as discovered_paths.example.json, after the scoring engine runs. The impact/likelihood/risk_score/severity/rationale values here are ILLUSTRATIVE placeholders so the dashboard can be built against populated data. Rahsheetha's engine defines the real numbers and the rule that produces them.",
+  "_comment": "Same paths as discovered_paths.example.json, after the scoring engine runs. Scale is 0-100 (risk_score = impact x likelihood, inputs 1-10). The values here are ILLUSTRATIVE placeholders so the dashboard can be built against populated data. Rahsheetha's engine defines the real numbers and the rule that produces them.",
   "schema_version": "1.0",
   "metadata": {
     "generated_at": "2026-11-02T18:05:00+05:30",
@@ -60,7 +60,7 @@
       "scoring": {
         "impact": 8,
         "likelihood": 5,
-        "risk_score": 400,
+        "risk_score": 40,
         "severity": "high",
         "rationale": "Reaches highly sensitive data (high impact) through a realistic multi-hop chain available to a low-privilege user (moderate likelihood)."
       }
@@ -99,7 +99,7 @@
       "scoring": {
         "impact": 10,
         "likelihood": 8,
-        "risk_score": 800,
+        "risk_score": 80,
         "severity": "critical",
         "rationale": "Single-step path to full account takeover with no preconditions; trivially exploitable."
       }
@@ -138,7 +138,7 @@
       "scoring": {
         "impact": 10,
         "likelihood": 6,
-        "risk_score": 600,
+        "risk_score": 60,
         "severity": "high",
         "rationale": "Full account takeover, but requires three permissions in combination, so slightly less trivial than path-002."
       }

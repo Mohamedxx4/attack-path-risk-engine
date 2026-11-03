@@ -80,7 +80,7 @@
       "properties": {
         "impact": { "type": ["integer", "null"], "minimum": 1, "maximum": 10 },
         "likelihood": { "type": ["integer", "null"], "minimum": 1, "maximum": 10 },
-        "risk_score": { "type": ["integer", "null"], "minimum": 0, "maximum": 1000 },
+        "risk_score": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
         "severity": { "enum": ["critical", "high", "medium", "low", null] },
         "rationale": { "type": ["string", "null"] }
       }

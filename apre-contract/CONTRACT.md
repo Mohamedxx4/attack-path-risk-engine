@@ -94,7 +94,7 @@ the hop — useful for debugging and for the "show your working" slide.
 |-------|------|---------|
 | `impact` | int 1–10 | How bad if exploited. |
 | `likelihood` | int 1–10 | How easy to exploit. |
-| `risk_score` | int | `impact × likelihood × 10` (range 10–1000). The documented APRE formula. |
+| `risk_score` | int | `impact × likelihood` (range 1–100). The documented APRE formula (0–100 scale). |
 | `severity` | enum | `critical` \| `high` \| `medium` \| `low` — a band derived from `risk_score`, for colour-coding the dashboard. |
 | `rationale` | string | One line explaining the score, for the panel. |
 
@@ -113,10 +113,10 @@ the hop — useful for debugging and for the "show your working" slide.
 
 | `risk_score` | `severity` |
 |--------------|-----------|
-| 700–1000 | critical |
-| 400–699 | high |
-| 150–399 | medium |
-| < 150 | low |
+| 70–100 | critical |
+| 40–69 | high |
+| 15–39 | medium |
+| < 15 | low |
 
 ## Versioning
 
