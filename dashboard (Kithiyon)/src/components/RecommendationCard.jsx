@@ -2,7 +2,7 @@ import { severityOf } from '../data/mockData';
 
 export default function RecommendationCard({ recommendation, rationale }) {
   return (
-    <section className="panel">
+    <section className="panel panel--feature">
       <header className="panel__head panel__head--icon">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
           <path

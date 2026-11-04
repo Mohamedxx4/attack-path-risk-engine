@@ -67,7 +67,7 @@ export default function SearchBar({ filters, onFilterChange, onSearch }) {
 
       <button
         type="button"
-        className="btn"
+        className="pill"
         onClick={() =>
           onFilterChange({
             ...filters,

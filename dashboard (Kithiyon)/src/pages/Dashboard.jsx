@@ -1,4 +1,5 @@
 import { useDashboard } from '../hooks/useDashboard';
+import { useTheme } from '../hooks/useTheme';
 import Header from '../components/Header';
 import SummaryCards from '../components/SummaryCards';
 import SearchBar from '../components/SearchBar';
@@ -22,7 +23,7 @@ function SkeletonCards() {
       </div>
 
       <div className="toolbar">
-        <div className="skel-bar" style={{ flex: 1, height: 38, borderRadius: 11 }} />
+        <div className="skel-bar" style={{ flex: 1, height: 44, borderRadius: 999 }} />
       </div>
 
       <div className="main" style={{ marginTop: 12 }}>
@@ -43,7 +44,7 @@ function ErrorState({ message, onRetry }) {
       <div className="error__icon" aria-hidden="true">⚠️</div>
       <div className="error__title">Failed to load dashboard</div>
       <div className="error__msg">{message}</div>
-      <button type="button" className="btn btn--danger" onClick={onRetry}>
+      <button type="button" className="pill pill--danger" onClick={onRetry}>
         Retry
       </button>
     </div>
@@ -68,6 +69,8 @@ export default function Dashboard() {
     refresh,
   } = useDashboard();
 
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <div className="page">
       <Header
@@ -75,9 +78,20 @@ export default function Dashboard() {
         accountId={meta?.accountId}
         onRefresh={refresh}
         refreshing={loading}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       <main className="wrap">
+        <section className="hero enter" style={{ '--i': 0 }}>
+          <h1 className="hero__title">Attack paths, ranked by&nbsp;risk</h1>
+          <p className="hero__lede">
+            {stats
+              ? `${stats.totalPaths} path${stats.totalPaths === 1 ? '' : 's'} scored against the contract. Pick one to see how it works and what to fix first.`
+              : 'Scored attack paths from the risk pipeline.'}
+          </p>
+        </section>
+
         {loading && <SkeletonCards />}
 
         {!loading && error && <ErrorState message={error} onRetry={refresh} />}
