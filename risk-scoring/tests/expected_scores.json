@@ -1,0 +1,50 @@
+{
+  "apre-path-901": {
+    "impact": 10,
+    "likelihood": 10,
+    "risk_score": 100,
+    "severity": "critical"
+  },
+  "apre-path-902": {
+    "impact": 8,
+    "likelihood": 8,
+    "risk_score": 64,
+    "severity": "high"
+  },
+  "apre-path-903": {
+    "impact": 8,
+    "likelihood": 6,
+    "risk_score": 48,
+    "severity": "high"
+  },
+  "apre-path-904": {
+    "impact": 10,
+    "likelihood": 6,
+    "risk_score": 60,
+    "severity": "high"
+  },
+  "apre-path-905": {
+    "impact": 10,
+    "likelihood": 7,
+    "risk_score": 70,
+    "severity": "critical"
+  },
+  "apre-path-906": {
+    "impact": 4,
+    "likelihood": 8,
+    "risk_score": 32,
+    "severity": "medium"
+  },
+  "apre-path-907": {
+    "impact": 3,
+    "likelihood": 3,
+    "risk_score": 9,
+    "severity": "low"
+  },
+  "apre-path-908": {
+    "impact": 6,
+    "likelihood": 1,
+    "risk_score": 6,
+    "severity": "low"
+  }
+}

@@ -1,0 +1,658 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "generated_at": "2026-11-03T00:00:00+00:00",
+    "account_id": "000000000000",
+    "source": "apre-synthetic-tests",
+    "path_count": 8
+  },
+  "paths": [
+    {
+      "id": "apre-path-901",
+      "technique": "policy_self_escalation",
+      "title": "One-step takeover by a low-privilege user",
+      "entry_point": {
+        "name": "t1-user",
+        "arn": "arn:aws:iam::000000000000:user/t1-user",
+        "type": "AWSUser"
+      },
+      "target": {
+        "name": "t1-target",
+        "arn": "arn:aws:synthetic::000000000000:t1-target",
+        "type": "AWSAccount",
+        "description": "Synthetic test target."
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": {
+            "name": "t1-user",
+            "type": "AWSUser"
+          },
+          "to": {
+            "name": "t1-target",
+            "type": "AWSAccount"
+          },
+          "action": "synthetic:Access",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        }
+      ],
+      "hop_count": 1,
+      "signals": {
+        "reaches_admin": true,
+        "target_category": "admin_privileges",
+        "data_sensitivity": null,
+        "entry_point_privilege": "low",
+        "required_preconditions": [],
+        "single_dangerous_permission": false,
+        "notes": "Synthetic scenario for scorer testing."
+      },
+      "scoring": {
+        "impact": null,
+        "likelihood": null,
+        "risk_score": null,
+        "severity": null,
+        "rationale": null
+      }
+    },
+    {
+      "id": "apre-path-902",
+      "technique": "role_chaining",
+      "title": "Three-hop chain to highly sensitive data",
+      "entry_point": {
+        "name": "t2-user",
+        "arn": "arn:aws:iam::000000000000:user/t2-user",
+        "type": "AWSUser"
+      },
+      "target": {
+        "name": "t2-target",
+        "arn": "arn:aws:synthetic::000000000000:t2-target",
+        "type": "AWSS3Bucket",
+        "description": "Synthetic test target.",
+        "data_sensitivity": "high"
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": {
+            "name": "t2-user",
+            "type": "AWSUser"
+          },
+          "to": {
+            "name": "t2-role-1",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 2,
+          "from": {
+            "name": "t2-role-1",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t2-role-2",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 3,
+          "from": {
+            "name": "t2-role-2",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t2-target",
+            "type": "AWSS3Bucket"
+          },
+          "action": "synthetic:Access",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        }
+      ],
+      "hop_count": 3,
+      "signals": {
+        "reaches_admin": false,
+        "target_category": "sensitive_data",
+        "data_sensitivity": "high",
+        "entry_point_privilege": "low",
+        "required_preconditions": [],
+        "single_dangerous_permission": false,
+        "notes": "Synthetic scenario for scorer testing."
+      },
+      "scoring": {
+        "impact": null,
+        "likelihood": null,
+        "risk_score": null,
+        "severity": null,
+        "rationale": null
+      }
+    },
+    {
+      "id": "apre-path-903",
+      "technique": "role_chaining",
+      "title": "Long five-hop chain to highly sensitive data",
+      "entry_point": {
+        "name": "t3-user",
+        "arn": "arn:aws:iam::000000000000:user/t3-user",
+        "type": "AWSUser"
+      },
+      "target": {
+        "name": "t3-target",
+        "arn": "arn:aws:synthetic::000000000000:t3-target",
+        "type": "AWSS3Bucket",
+        "description": "Synthetic test target.",
+        "data_sensitivity": "high"
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": {
+            "name": "t3-user",
+            "type": "AWSUser"
+          },
+          "to": {
+            "name": "t3-role-1",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 2,
+          "from": {
+            "name": "t3-role-1",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t3-role-2",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 3,
+          "from": {
+            "name": "t3-role-2",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t3-role-3",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 4,
+          "from": {
+            "name": "t3-role-3",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t3-role-4",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 5,
+          "from": {
+            "name": "t3-role-4",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t3-target",
+            "type": "AWSS3Bucket"
+          },
+          "action": "synthetic:Access",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        }
+      ],
+      "hop_count": 5,
+      "signals": {
+        "reaches_admin": false,
+        "target_category": "sensitive_data",
+        "data_sensitivity": "high",
+        "entry_point_privilege": "low",
+        "required_preconditions": [],
+        "single_dangerous_permission": false,
+        "notes": "Synthetic scenario for scorer testing."
+      },
+      "scoring": {
+        "impact": null,
+        "likelihood": null,
+        "risk_score": null,
+        "severity": null,
+        "rationale": null
+      }
+    },
+    {
+      "id": "apre-path-904",
+      "technique": "passrole_lambda",
+      "title": "Admin via three combined permissions",
+      "entry_point": {
+        "name": "t4-user",
+        "arn": "arn:aws:iam::000000000000:user/t4-user",
+        "type": "AWSUser"
+      },
+      "target": {
+        "name": "t4-target",
+        "arn": "arn:aws:synthetic::000000000000:t4-target",
+        "type": "AWSRole",
+        "description": "Synthetic test target."
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": {
+            "name": "t4-user",
+            "type": "AWSUser"
+          },
+          "to": {
+            "name": "t4-target",
+            "type": "AWSRole"
+          },
+          "action": "synthetic:Access",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        }
+      ],
+      "hop_count": 1,
+      "signals": {
+        "reaches_admin": true,
+        "target_category": "admin_privileges",
+        "data_sensitivity": null,
+        "entry_point_privilege": "medium",
+        "required_preconditions": [
+          "iam:PassRole",
+          "lambda:CreateFunction",
+          "lambda:InvokeFunction"
+        ],
+        "single_dangerous_permission": false,
+        "notes": "Synthetic scenario for scorer testing."
+      },
+      "scoring": {
+        "impact": null,
+        "likelihood": null,
+        "risk_score": null,
+        "severity": null,
+        "rationale": null
+      }
+    },
+    {
+      "id": "apre-path-905",
+      "technique": "policy_self_escalation",
+      "title": "Already-privileged user with one dangerous permission",
+      "entry_point": {
+        "name": "t5-user",
+        "arn": "arn:aws:iam::000000000000:user/t5-user",
+        "type": "AWSUser"
+      },
+      "target": {
+        "name": "t5-target",
+        "arn": "arn:aws:synthetic::000000000000:t5-target",
+        "type": "AWSAccount",
+        "description": "Synthetic test target."
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": {
+            "name": "t5-user",
+            "type": "AWSUser"
+          },
+          "to": {
+            "name": "t5-target",
+            "type": "AWSAccount"
+          },
+          "action": "synthetic:Access",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        }
+      ],
+      "hop_count": 1,
+      "signals": {
+        "reaches_admin": true,
+        "target_category": "admin_privileges",
+        "data_sensitivity": null,
+        "entry_point_privilege": "high",
+        "required_preconditions": [],
+        "single_dangerous_permission": true,
+        "notes": "Synthetic scenario for scorer testing."
+      },
+      "scoring": {
+        "impact": null,
+        "likelihood": null,
+        "risk_score": null,
+        "severity": null,
+        "rationale": null
+      }
+    },
+    {
+      "id": "apre-path-906",
+      "technique": "role_chaining",
+      "title": "Two hops to low-sensitivity data",
+      "entry_point": {
+        "name": "t6-user",
+        "arn": "arn:aws:iam::000000000000:user/t6-user",
+        "type": "AWSUser"
+      },
+      "target": {
+        "name": "t6-target",
+        "arn": "arn:aws:synthetic::000000000000:t6-target",
+        "type": "AWSS3Bucket",
+        "description": "Synthetic test target.",
+        "data_sensitivity": "low"
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": {
+            "name": "t6-user",
+            "type": "AWSUser"
+          },
+          "to": {
+            "name": "t6-role-1",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 2,
+          "from": {
+            "name": "t6-role-1",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t6-target",
+            "type": "AWSS3Bucket"
+          },
+          "action": "synthetic:Access",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        }
+      ],
+      "hop_count": 2,
+      "signals": {
+        "reaches_admin": false,
+        "target_category": "sensitive_data",
+        "data_sensitivity": "low",
+        "entry_point_privilege": "medium",
+        "required_preconditions": [],
+        "single_dangerous_permission": false,
+        "notes": "Synthetic scenario for scorer testing."
+      },
+      "scoring": {
+        "impact": null,
+        "likelihood": null,
+        "risk_score": null,
+        "severity": null,
+        "rationale": null
+      }
+    },
+    {
+      "id": "apre-path-907",
+      "technique": "role_chaining",
+      "title": "Hard path to a non-critical resource",
+      "entry_point": {
+        "name": "t7-user",
+        "arn": "arn:aws:iam::000000000000:user/t7-user",
+        "type": "AWSUser"
+      },
+      "target": {
+        "name": "t7-target",
+        "arn": "arn:aws:synthetic::000000000000:t7-target",
+        "type": "AWSRole",
+        "description": "Synthetic test target."
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": {
+            "name": "t7-user",
+            "type": "AWSUser"
+          },
+          "to": {
+            "name": "t7-role-1",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 2,
+          "from": {
+            "name": "t7-role-1",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t7-role-2",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 3,
+          "from": {
+            "name": "t7-role-2",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t7-role-3",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 4,
+          "from": {
+            "name": "t7-role-3",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t7-target",
+            "type": "AWSRole"
+          },
+          "action": "synthetic:Access",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        }
+      ],
+      "hop_count": 4,
+      "signals": {
+        "reaches_admin": false,
+        "target_category": "other",
+        "data_sensitivity": null,
+        "entry_point_privilege": "high",
+        "required_preconditions": [
+          "a:X",
+          "b:Y"
+        ],
+        "single_dangerous_permission": false,
+        "notes": "Synthetic scenario for scorer testing."
+      },
+      "scoring": {
+        "impact": null,
+        "likelihood": null,
+        "risk_score": null,
+        "severity": null,
+        "rationale": null
+      }
+    },
+    {
+      "id": "apre-path-908",
+      "technique": "role_chaining",
+      "title": "Very long, heavily preconditioned chain",
+      "entry_point": {
+        "name": "t8-user",
+        "arn": "arn:aws:iam::000000000000:user/t8-user",
+        "type": "AWSUser"
+      },
+      "target": {
+        "name": "t8-target",
+        "arn": "arn:aws:synthetic::000000000000:t8-target",
+        "type": "AWSS3Bucket",
+        "description": "Synthetic test target.",
+        "data_sensitivity": "medium"
+      },
+      "hops": [
+        {
+          "step": 1,
+          "from": {
+            "name": "t8-user",
+            "type": "AWSUser"
+          },
+          "to": {
+            "name": "t8-role-1",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 2,
+          "from": {
+            "name": "t8-role-1",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t8-role-2",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 3,
+          "from": {
+            "name": "t8-role-2",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t8-role-3",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 4,
+          "from": {
+            "name": "t8-role-3",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t8-role-4",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 5,
+          "from": {
+            "name": "t8-role-4",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t8-role-5",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 6,
+          "from": {
+            "name": "t8-role-5",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t8-role-6",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 7,
+          "from": {
+            "name": "t8-role-6",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t8-role-7",
+            "type": "AWSRole"
+          },
+          "action": "sts:AssumeRole",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        },
+        {
+          "step": 8,
+          "from": {
+            "name": "t8-role-7",
+            "type": "AWSRole"
+          },
+          "to": {
+            "name": "t8-target",
+            "type": "AWSS3Bucket"
+          },
+          "action": "synthetic:Access",
+          "mechanism": "Synthetic test hop.",
+          "evidence_edges": []
+        }
+      ],
+      "hop_count": 8,
+      "signals": {
+        "reaches_admin": false,
+        "target_category": "sensitive_data",
+        "data_sensitivity": "medium",
+        "entry_point_privilege": "high",
+        "required_preconditions": [
+          "a:1",
+          "b:2",
+          "c:3",
+          "d:4",
+          "e:5"
+        ],
+        "single_dangerous_permission": true,
+        "notes": "Synthetic scenario for scorer testing."
+      },
+      "scoring": {
+        "impact": null,
+        "likelihood": null,
+        "risk_score": null,
+        "severity": null,
+        "rationale": null
+      }
+    }
+  ]
+}
