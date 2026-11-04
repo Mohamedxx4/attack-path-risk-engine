@@ -7,138 +7,43 @@ import PathGraphView from '../components/PathGraphView';
 import RecommendationCard from '../components/RecommendationCard';
 import Footer from '../components/Footer';
 
-const styles = {
-  page: {
-    minHeight: '100vh',
-    background: '#060f1e',
-  },
-  wrapper: {
-    maxWidth: 1440,
-    margin: '0 auto',
-    padding: '0 28px 32px',
-  },
-  mainContent: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 380px',
-    gap: 18,
-    marginTop: 6,
-  },
-  rightColumn: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 16,
-  },
-
-  // ── Loading skeleton ──────────────────────────────────────────────────
-  skeletonGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-    gap: 14,
-    marginTop: 20,
-  },
-  skeletonCard: {
-    background: '#111f35',
-    border: '1px solid rgba(99,179,237,0.08)',
-    borderRadius: 14,
-    height: 100,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  skeletonBar: (w, mt) => ({
-    background: 'rgba(99,179,237,0.06)',
-    borderRadius: 6,
-    width: w,
-    height: 12,
-    marginTop: mt || 0,
-  }),
-
-  // ── Error state ───────────────────────────────────────────────────────
-  errorBox: {
-    margin: '40px auto',
-    maxWidth: 480,
-    background: 'rgba(245,101,101,0.08)',
-    border: '1px solid rgba(245,101,101,0.22)',
-    borderRadius: 14,
-    padding: '32px 28px',
-    textAlign: 'center',
-  },
-};
-
-// Shimmer animation applied inline via a <style> tag
-const ShimmerStyle = () => (
-  <style>{`
-    @keyframes shimmer {
-      from { transform: translateX(-100%); }
-      to   { transform: translateX(100%);  }
-    }
-    .skeleton-shimmer::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent 0%, rgba(99,179,237,0.06) 50%, transparent 100%);
-      animation: shimmer 1.6s ease infinite;
-    }
-  `}</style>
-);
-
+// ── Loading skeleton ────────────────────────────────────────────────────
 function SkeletonCards() {
   return (
-    <>
-      <ShimmerStyle />
-      <div style={styles.skeletonGrid}>
+    <div aria-busy="true" aria-label="Loading dashboard" role="status">
+      <div className="stats">
         {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} style={styles.skeletonCard} className="skeleton-shimmer">
-            <div style={{ padding: '20px 22px' }}>
-              <div style={styles.skeletonBar('40%')} />
-              <div style={{ ...styles.skeletonBar('55%'), height: 36, marginTop: 14, borderRadius: 8 }} />
-              <div style={styles.skeletonBar('60%', 10)} />
-            </div>
+          <div key={i} className="skel skel--stat enter" style={{ '--i': i }}>
+            <div className="skel-bar" style={{ width: '40%' }} />
+            <div className="skel-bar skel-bar--value" style={{ width: '55%' }} />
+            <div className="skel-bar" style={{ width: '60%', marginTop: 10 }} />
           </div>
         ))}
       </div>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 380px',
-        gap: 18,
-        marginTop: 24,
-      }}>
-        <div style={{ ...styles.skeletonCard, height: 500 }} className="skeleton-shimmer" />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ ...styles.skeletonCard, height: 260 }} className="skeleton-shimmer" />
-          <div style={{ ...styles.skeletonCard, height: 220 }} className="skeleton-shimmer" />
+
+      <div className="toolbar">
+        <div className="skel-bar" style={{ flex: 1, height: 38, borderRadius: 11 }} />
+      </div>
+
+      <div className="main" style={{ marginTop: 12 }}>
+        <div className="skel skel--list" />
+        <div className="side">
+          <div className="skel" style={{ height: 260 }} />
+          <div className="skel" style={{ height: 220 }} />
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
+// ── Error state ─────────────────────────────────────────────────────────
 function ErrorState({ message, onRetry }) {
   return (
-    <div style={styles.errorBox}>
-      <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: '#f56565', marginBottom: 8 }}>
-        Failed to load dashboard
-      </div>
-      <div style={{ fontSize: 13, color: '#8fa5c0', lineHeight: 1.6, marginBottom: 20 }}>
-        {message}
-      </div>
-      <button
-        onClick={onRetry}
-        style={{
-          padding: '9px 24px',
-          background: 'rgba(245,101,101,0.12)',
-          border: '1px solid rgba(245,101,101,0.30)',
-          borderRadius: 8,
-          color: '#f56565',
-          fontSize: 13,
-          fontWeight: 600,
-          cursor: 'pointer',
-          fontFamily: 'Inter, sans-serif',
-          transition: 'all 0.18s ease',
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(245,101,101,0.20)'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(245,101,101,0.12)'}
-      >
+    <div className="error" role="alert">
+      <div className="error__icon" aria-hidden="true">⚠️</div>
+      <div className="error__title">Failed to load dashboard</div>
+      <div className="error__msg">{message}</div>
+      <button type="button" className="btn btn--danger" onClick={onRetry}>
         Retry
       </button>
     </div>
@@ -164,23 +69,19 @@ export default function Dashboard() {
   } = useDashboard();
 
   return (
-    <div style={styles.page}>
+    <div className="page">
       <Header
         lastUpdated={lastUpdated ? `Scored ${lastUpdated}` : '—'}
         accountId={meta?.accountId}
         onRefresh={refresh}
+        refreshing={loading}
       />
-      <div style={styles.wrapper}>
 
-        {/* ── Loading ── */}
+      <main className="wrap">
         {loading && <SkeletonCards />}
 
-        {/* ── Error ── */}
-        {!loading && error && (
-          <ErrorState message={error} onRetry={refresh} />
-        )}
+        {!loading && error && <ErrorState message={error} onRetry={refresh} />}
 
-        {/* ── Data loaded ── */}
         {!loading && !error && (
           <>
             {stats && <SummaryCards stats={stats} />}
@@ -191,14 +92,15 @@ export default function Dashboard() {
               onSearch={setSearchQuery}
             />
 
-            <div style={styles.mainContent}>
+            <div className="main">
               <RankedAttackPaths
                 paths={filteredPaths}
                 selectedPathId={selectedPathId}
                 onSelectPath={setSelectedPathId}
               />
-              <div style={styles.rightColumn}>
-                <PathGraphView path={selectedPath} />
+              <div className="side">
+                {/* Keyed by path so the graph re-runs its entrance for each new path. */}
+                <PathGraphView key={selectedPath?.id ?? 'none'} path={selectedPath} />
                 <RecommendationCard
                   recommendation={recommendation}
                   rationale={selectedPath?.rationale}
@@ -209,7 +111,7 @@ export default function Dashboard() {
             <Footer />
           </>
         )}
-      </div>
+      </main>
     </div>
   );
 }

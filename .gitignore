@@ -225,3 +225,6 @@ node_modules/
 
 cartography-venv/
 *.zip
+
+discovery-venv/
+path-discovery/discovery-venv/
