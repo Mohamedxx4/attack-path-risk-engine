@@ -1,16 +1,57 @@
-# React + Vite
+# APRE Dashboard (layer 3)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Owner: Kithiyon
 
-Currently, two official plugins are available:
+Renders the scored attack paths produced by the pipeline:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```
+path-discovery/discover.py → risk-scoring/score.py → risk-scoring/scored_paths.json → dashboard
+```
 
-## React Compiler
+The dashboard reads the shared path contract (`apre-contract/`, v1.0) as-is. It never
+reshapes another module's data; `src/services/adapter.js` only derives display fields
+(graph nodes, severity colour, chips, and a remediation per technique).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Run
 
-## Expanding the Oxlint configuration
+```powershell
+npm install
+npm run api     # serves ../risk-scoring/scored_paths.json on http://localhost:8000
+npm run dev     # in a second terminal; Vite proxies /api → :8000
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+The API re-reads the file on every request, so after re-running `score.py` just press
+**Refresh**. To serve a different file:
+
+```powershell
+$env:APRE_SCORED_PATHS = 'C:\path\to\scored_paths.json'; npm run api
+```
+
+If the file has unscored paths (e.g. you pointed it at `discovered_paths.json`), the
+dashboard says so instead of showing empty scores.
+
+## API
+
+| Endpoint | Returns |
+|----------|---------|
+| `GET /api/paths` | The scored contract document, unchanged |
+| `GET /api/health` | `{ ok, file }` |
+
+## What's shown
+
+- Summary cards for all four contract severity bands (critical / high / medium / low).
+- Ranked list: `risk_score`, impact × likelihood, technique and AWS actions.
+- Path graph: every principal/resource on the path with the AWS action on each step;
+  hover a step for the discovery module's plain-language `mechanism`.
+- Recommendation: a fix derived from the path's technique and hops, plus the scoring
+  engine's `rationale` ("why this score").
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `mock-server.js` | Local API serving `scored_paths.json` |
+| `src/services/api.js` | Fetches `/api/paths` |
+| `src/services/adapter.js` | Contract → view model, recommendations |
+| `src/hooks/useDashboard.js` | Loading, filter, sort, search, selection |
+| `src/components/*` | UI |

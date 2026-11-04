@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
 const severityFilters = [
-  { label: 'All',    value: 'ALL',    color: '#63b3ed' },
+  { label: 'All',      value: 'ALL',      color: '#63b3ed' },
+  { label: 'Critical', value: 'CRITICAL', color: '#e53e8a' },
   { label: 'High',   value: 'HIGH',   color: '#f56565' },
   { label: 'Medium', value: 'MEDIUM', color: '#ed8936' },
   { label: 'Low',    value: 'LOW',    color: '#48bb78' },

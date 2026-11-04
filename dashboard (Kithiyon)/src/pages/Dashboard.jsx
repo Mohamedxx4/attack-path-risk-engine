@@ -32,7 +32,7 @@ const styles = {
   // ── Loading skeleton ──────────────────────────────────────────────────
   skeletonGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
     gap: 14,
     marginTop: 20,
   },
@@ -86,7 +86,7 @@ function SkeletonCards() {
     <>
       <ShimmerStyle />
       <div style={styles.skeletonGrid}>
-        {[0, 1, 2, 3].map((i) => (
+        {[0, 1, 2, 3, 4].map((i) => (
           <div key={i} style={styles.skeletonCard} className="skeleton-shimmer">
             <div style={{ padding: '20px 22px' }}>
               <div style={styles.skeletonBar('40%')} />
@@ -147,18 +147,17 @@ function ErrorState({ message, onRetry }) {
 
 export default function Dashboard() {
   const {
+    meta,
     stats,
     filteredPaths,
     selectedPath,
     recommendation,
     filters,
     setFilters,
-    searchQuery,
     setSearchQuery,
     selectedPathId,
     setSelectedPathId,
     loading,
-    recLoading,
     error,
     lastUpdated,
     refresh,
@@ -166,7 +165,11 @@ export default function Dashboard() {
 
   return (
     <div style={styles.page}>
-      <Header lastUpdated={lastUpdated || '—'} onRefresh={refresh} />
+      <Header
+        lastUpdated={lastUpdated ? `Scored ${lastUpdated}` : '—'}
+        accountId={meta?.accountId}
+        onRefresh={refresh}
+      />
       <div style={styles.wrapper}>
 
         {/* ── Loading ── */}
@@ -198,7 +201,7 @@ export default function Dashboard() {
                 <PathGraphView path={selectedPath} />
                 <RecommendationCard
                   recommendation={recommendation}
-                  loading={recLoading}
+                  rationale={selectedPath?.rationale}
                 />
               </div>
             </div>

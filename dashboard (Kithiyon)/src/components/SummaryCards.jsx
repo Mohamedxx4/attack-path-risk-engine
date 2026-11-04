@@ -1,21 +1,23 @@
 const severityConfig = {
-  HIGH:   { color: '#f56565', bg: 'rgba(245,101,101,0.12)', glow: 'rgba(245,101,101,0.22)', topLine: '#f56565', icon: '🔴' },
+  CRITICAL: { color: '#e53e8a', bg: 'rgba(229,62,138,0.12)', glow: 'rgba(229,62,138,0.22)', topLine: '#e53e8a', icon: '🟣' },
+  HIGH:  { color: '#f56565', bg: 'rgba(245,101,101,0.12)', glow: 'rgba(245,101,101,0.22)', topLine: '#f56565', icon: '🔴' },
   MEDIUM: { color: '#ed8936', bg: 'rgba(237,137,54,0.12)',  glow: 'rgba(237,137,54,0.22)',  topLine: '#ed8936', icon: '🟠' },
   LOW:    { color: '#48bb78', bg: 'rgba(72,187,120,0.12)',  glow: 'rgba(72,187,120,0.22)',  topLine: '#48bb78', icon: '🟢' },
   TOTAL:  { color: '#63b3ed', bg: 'rgba(99,179,237,0.10)',  glow: 'rgba(99,179,237,0.22)',  topLine: '#63b3ed', icon: '📊' },
 };
 
 const cards = [
-  { label: 'Paths Found', key: 'totalPaths',  sev: 'TOTAL',  desc: 'Total identified' },
-  { label: 'High Risk',   key: 'highCount',   sev: 'HIGH',   desc: 'Immediate action' },
-  { label: 'Medium Risk', key: 'mediumCount', sev: 'MEDIUM', desc: 'Monitor closely'  },
+  { label: 'Paths Found',   key: 'totalPaths',    sev: 'TOTAL',    desc: 'Total identified' },
+  { label: 'Critical Risk', key: 'criticalCount', sev: 'CRITICAL', desc: 'Fix now'          },
+  { label: 'High Risk',     key: 'highCount',     sev: 'HIGH',     desc: 'Immediate action' },
+  { label: 'Medium Risk',   key: 'mediumCount',   sev: 'MEDIUM',   desc: 'Monitor closely'  },
   { label: 'Low Risk',    key: 'lowCount',    sev: 'LOW',    desc: 'Informational'    },
 ];
 
 const S = {
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
     gap: 14,
     marginTop: 20,
   },
@@ -26,7 +28,7 @@ export default function SummaryCards({ stats }) {
     <div style={S.grid}>
       {cards.map((card) => {
         const cfg = severityConfig[card.sev];
-        const value = stats[card.key];
+        const value = stats[card.key] ?? 0;
         return (
           <div
             key={card.key}

@@ -1,4 +1,4 @@
-import { nodeTypeColors, nodeTypeLabels } from '../data/mockData';
+import { nodeTypeLabels } from '../data/mockData';
 
 const nodeColors = {
   entry:     { color: '#f56565', bg: 'rgba(245,101,101,0.14)', border: 'rgba(245,101,101,0.35)', glow: 'rgba(245,101,101,0.20)' },
@@ -128,17 +128,27 @@ export default function PathGraphView({ path }) {
                   </div>
 
                   {/* Node label */}
-                  <div style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: '#c0cfe0',
-                    textAlign: 'center',
-                    marginTop: 8,
-                    maxWidth: 100,
-                    lineHeight: 1.3,
-                  }}>
+                  <div
+                    title={node.arn || undefined}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: '#c0cfe0',
+                      textAlign: 'center',
+                      marginTop: 8,
+                      maxWidth: 220,
+                      lineHeight: 1.3,
+                      overflowWrap: 'anywhere',
+                      fontFamily: "'JetBrains Mono', monospace",
+                    }}
+                  >
                     {node.label}
                   </div>
+                  {node.kind && (
+                    <div style={{ fontSize: 9, color: '#4d6278', marginTop: 2 }}>
+                      {node.kind}
+                    </div>
+                  )}
 
                   {/* Type badge */}
                   <div style={{
@@ -158,14 +168,41 @@ export default function PathGraphView({ path }) {
 
                   {/* Connector */}
                   {i < path.nodes.length - 1 && (
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      margin: '6px 0',
-                      gap: 1,
-                    }}>
-                      {[0, 1, 2, 3].map((d) => (
+                    <div
+                      title={path.nodes[i + 1].mechanism || undefined}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        margin: '6px 0',
+                        gap: 1,
+                        cursor: path.nodes[i + 1].mechanism ? 'help' : 'default',
+                      }}
+                    >
+                      {[0, 1].map((d) => (
+                        <div key={d} style={{
+                          width: 2,
+                          height: 5,
+                          borderRadius: 1,
+                          background: `rgba(99,179,237,${0.35 - d * 0.06})`,
+                        }} />
+                      ))}
+                      {path.nodes[i + 1].action && (
+                        <span style={{
+                          fontSize: 10,
+                          fontWeight: 600,
+                          color: '#63b3ed',
+                          background: 'rgba(99,179,237,0.08)',
+                          border: '1px solid rgba(99,179,237,0.18)',
+                          padding: '1px 8px',
+                          borderRadius: 4,
+                          margin: '3px 0',
+                          fontFamily: "'JetBrains Mono', monospace",
+                        }}>
+                          {path.nodes[i + 1].action}
+                        </span>
+                      )}
+                      {[2, 3].map((d) => (
                         <div key={d} style={{
                           width: 2,
                           height: 5,
@@ -192,7 +229,7 @@ export default function PathGraphView({ path }) {
             lineHeight: 1.6,
             letterSpacing: '0.01em',
           }}>
-            Privilege escalation path · rendered node by node
+            {path.hops} hop{path.hops !== 1 ? 's' : ''} · hover a step to see why it works
           </div>
         </>
       )}

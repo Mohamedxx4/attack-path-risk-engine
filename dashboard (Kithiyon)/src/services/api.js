@@ -1,97 +1,55 @@
 /**
- * api.js — Centralized API service for Attack Path Risk Engine
+ * api.js — Fetches the scored attack paths for the dashboard.
  *
- * Base URL is read from the env variable VITE_API_BASE_URL.
- * During development, Vite proxies /api → backend (see vite.config.js).
+ * GET /api/paths returns the APRE path contract (v1.0) exactly as
+ * risk-scoring/score.py wrote it (see mock-server.js). adapter.js turns it
+ * into what the components render.
  *
- * Expected backend contract
- * ─────────────────────────
- * GET /api/dashboard/stats
- *   Response: { totalPaths, highCount, mediumCount, lowCount }
- *
- * GET /api/attack-paths
- *   Query params: severity (ALL|HIGH|MEDIUM|LOW), sortBy (riskScore|impact), q (search string)
- *   Response: AttackPath[]
- *     AttackPath: {
- *       id, riskScore, severity, title, hops, techniques, impact,
- *       nodes: [{ id, label, type }]   // type: entry | resource | identity | sensitive
- *     }
- *
- * GET /api/attack-paths/:id/recommendation
- *   Response: {
- *     severity, title, description, affectedResource, action
- *   }
- *
- * If your backend returns everything in one call, swap out the individual
- * fetch functions below and adjust the hook accordingly.
+ * Base URL comes from VITE_API_BASE_URL; in development Vite proxies
+ * /api → http://localhost:8000 (see vite.config.js).
  */
 
 import axios from 'axios';
+import { adaptDocument } from './adapter';
 
-// ── Axios instance ─────────────────────────────────────────────────────────
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 15_000,
   headers: { 'Content-Type': 'application/json' },
 });
 
-// ── Request interceptor (attach auth token if needed) ────────────────────
 api.interceptors.request.use((config) => {
   const token = import.meta.env.VITE_API_TOKEN;
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// ── Response interceptor (normalise errors) ──────────────────────────────
 api.interceptors.response.use(
   (res) => res.data,
   (err) => {
+    const status = err?.response?.status;
     const msg =
       err?.response?.data?.message ||
       err?.response?.data?.error ||
+      // The Vite proxy answers 500/502/504 with no body when the API is down.
+      (status >= 500 && !err?.response?.data ? 'API not reachable. Start it with `npm run api`.' : null) ||
       err?.message ||
       'Unexpected error';
     return Promise.reject(new Error(msg));
-  }
+  },
 );
 
-// ── API functions ─────────────────────────────────────────────────────────
-
-/**
- * Fetch summary stats: total paths, high/medium/low counts.
- * @returns {Promise<{ totalPaths: number, highCount: number, mediumCount: number, lowCount: number }>}
- */
-export async function fetchDashboardStats() {
-  return api.get('/dashboard/stats');
+/** Raw scored contract document. */
+export async function fetchScoredPaths() {
+  return api.get('/paths');
 }
 
 /**
- * Fetch all attack paths (filtering & sorting can be done server-side or client-side).
- * @returns {Promise<AttackPath[]>}
- */
-export async function fetchAttackPaths() {
-  return api.get('/attack-paths');
-}
-
-/**
- * Fetch the recommendation for a specific attack path.
- * @param {string} pathId
- * @returns {Promise<Recommendation>}
- */
-export async function fetchRecommendation(pathId) {
-  return api.get(`/attack-paths/${pathId}/recommendation`);
-}
-
-/**
- * Convenience: fetch everything needed for the dashboard in parallel.
- * @returns {Promise<{ stats, paths }>}
+ * Everything the dashboard needs.
+ * @returns {Promise<{ meta, stats, paths }>}
  */
 export async function fetchDashboardData() {
-  const [stats, paths] = await Promise.all([
-    fetchDashboardStats(),
-    fetchAttackPaths(),
-  ]);
-  return { stats, paths };
+  return adaptDocument(await fetchScoredPaths());
 }
 
 export default api;

@@ -1,10 +1,4 @@
-import { severityColors, severityBgColors } from '../data/mockData';
-
-const sev = {
-  HIGH:   { color: '#f56565', bg: 'rgba(245,101,101,0.12)', border: 'rgba(245,101,101,0.25)' },
-  MEDIUM: { color: '#ed8936', bg: 'rgba(237,137,54,0.12)',  border: 'rgba(237,137,54,0.25)' },
-  LOW:    { color: '#48bb78', bg: 'rgba(72,187,120,0.12)',  border: 'rgba(72,187,120,0.25)' },
-};
+import { severityStyles as sev } from '../data/mockData';
 
 function hopLabel(hops) {
   return `${hops} hop${hops !== 1 ? 's' : ''}`;
@@ -124,7 +118,7 @@ export default function RankedAttackPaths({ paths, selectedPathId, onSelectPath 
                     textShadow: selected ? `0 0 14px ${cfg.color}80` : 'none',
                     transition: 'text-shadow 0.2s',
                   }}>
-                    {path.riskScore.toFixed(1)}
+                    {path.riskScore}
                   </span>
                 </div>
 
@@ -179,7 +173,7 @@ export default function RankedAttackPaths({ paths, selectedPathId, onSelectPath 
                       padding: '2px 8px',
                       borderRadius: 5,
                     }}>
-                      impact {path.impact}
+                      I {path.impact} × L {path.likelihood}
                     </span>
                   </div>
                 </div>

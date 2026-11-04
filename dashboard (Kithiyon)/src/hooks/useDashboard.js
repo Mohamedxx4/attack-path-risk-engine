@@ -1,55 +1,43 @@
 /**
- * useDashboard.js — Custom hook that manages all dashboard data fetching,
- * filtering, sorting, and recommendation loading.
- *
- * Usage:
- *   const { stats, filteredPaths, selectedPath, recommendation,
- *           filters, setFilters, searchQuery, setSearchQuery,
- *           selectedPathId, setSelectedPathId,
- *           loading, error, refresh, lastUpdated } = useDashboard();
+ * useDashboard.js — Loads the scored attack paths and manages filtering,
+ * sorting, search, and selection for the dashboard.
  */
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { fetchDashboardData, fetchRecommendation } from '../services/api';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { fetchDashboardData } from '../services/api';
+
+function formatTime(iso) {
+  const d = iso ? new Date(iso) : new Date();
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleString('en-US', {
+    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+}
 
 export function useDashboard() {
-  // ── Raw data from backend ───────────────────────────────────────────────
+  const [meta, setMeta] = useState(null);
   const [stats, setStats] = useState(null);
   const [paths, setPaths] = useState([]);
 
-  // ── UI state ────────────────────────────────────────────────────────────
   const [selectedPathId, setSelectedPathId] = useState(null);
   const [filters, setFilters] = useState({ severity: 'ALL', sortBy: 'riskScore' });
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ── Loading / error ─────────────────────────────────────────────────────
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
 
-  // ── Recommendation cache ─────────────────────────────────────────────────
-  const [recommendation, setRecommendation] = useState(null);
-  const [recLoading, setRecLoading] = useState(false);
-  const recCacheRef = useRef({}); // { [pathId]: recommendation }
-
-  // ── Fetch main dashboard data ────────────────────────────────────────────
   const loadDashboard = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const { stats: s, paths: p } = await fetchDashboardData();
-      setStats(s);
-      setPaths(Array.isArray(p) ? p : []);
-      setLastUpdated(
-        new Date().toLocaleString('en-US', {
-          month: 'short', day: 'numeric',
-          hour: '2-digit', minute: '2-digit',
-        })
+      const data = await fetchDashboardData();
+      setMeta(data.meta);
+      setStats(data.stats);
+      setPaths(data.paths);
+      // Keep the current selection if it still exists, else pick the top path.
+      setSelectedPathId((prev) =>
+        data.paths.some((p) => p.id === prev) ? prev : data.paths[0]?.id ?? null,
       );
-      // Auto-select first path
-      if (Array.isArray(p) && p.length > 0) {
-        setSelectedPathId((prev) => prev || p[0].id);
-      }
     } catch (err) {
       setError(err.message || 'Failed to load dashboard data.');
     } finally {
@@ -57,35 +45,10 @@ export function useDashboard() {
     }
   }, []);
 
-  // Initial load
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
 
-  // ── Fetch recommendation when selection changes ──────────────────────────
-  useEffect(() => {
-    if (!selectedPathId) return;
-
-    // Use cache if available
-    if (recCacheRef.current[selectedPathId]) {
-      setRecommendation(recCacheRef.current[selectedPathId]);
-      return;
-    }
-
-    setRecLoading(true);
-    setRecommendation(null);
-    fetchRecommendation(selectedPathId)
-      .then((rec) => {
-        recCacheRef.current[selectedPathId] = rec;
-        setRecommendation(rec);
-      })
-      .catch(() => {
-        setRecommendation(null);
-      })
-      .finally(() => setRecLoading(false));
-  }, [selectedPathId]);
-
-  // ── Client-side filter + sort ────────────────────────────────────────────
   const filteredPaths = useMemo(() => {
     let result = [...paths];
 
@@ -93,38 +56,34 @@ export function useDashboard() {
       result = result.filter((p) => p.severity === filters.severity);
     }
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
       result = result.filter(
         (p) =>
           p.title.toLowerCase().includes(q) ||
-          (Array.isArray(p.techniques) && p.techniques.some((t) => t.toLowerCase().includes(q)))
+          p.entryPoint.name.toLowerCase().includes(q) ||
+          p.target.name.toLowerCase().includes(q) ||
+          p.techniques.some((t) => t.toLowerCase().includes(q)),
       );
     }
 
-    result.sort((a, b) =>
-      filters.sortBy === 'riskScore'
-        ? b.riskScore - a.riskScore
-        : b.impact - a.impact
-    );
-
+    const key = filters.sortBy === 'impact' ? 'impact' : 'riskScore';
+    result.sort((a, b) => b[key] - a[key] || b.riskScore - a.riskScore);
     return result;
   }, [paths, filters, searchQuery]);
 
-  // ── Selected path object ─────────────────────────────────────────────────
   const selectedPath = useMemo(
     () => paths.find((p) => p.id === selectedPathId) || null,
-    [paths, selectedPathId]
+    [paths, selectedPathId],
   );
 
   return {
-    // Data
+    meta,
     stats,
     filteredPaths,
     selectedPath,
-    recommendation,
+    recommendation: selectedPath?.recommendation ?? null,
 
-    // UI controls
     filters,
     setFilters,
     searchQuery,
@@ -132,13 +91,10 @@ export function useDashboard() {
     selectedPathId,
     setSelectedPathId,
 
-    // Status
     loading,
-    recLoading,
     error,
-    lastUpdated,
+    lastUpdated: meta ? formatTime(meta.scoredAt || meta.generatedAt) : null,
 
-    // Actions
     refresh: loadDashboard,
   };
 }

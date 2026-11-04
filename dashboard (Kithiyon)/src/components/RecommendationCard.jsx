@@ -1,4 +1,6 @@
-export default function RecommendationCard({ recommendation, loading }) {
+import { severityStyles as sev } from '../data/mockData';
+
+export default function RecommendationCard({ recommendation, rationale, loading = false }) {
   // ── Loading skeleton ──────────────────────────────────────────────────
   if (loading) {
     return (
@@ -27,16 +29,10 @@ export default function RecommendationCard({ recommendation, loading }) {
     );
   }
 
-  return <_RecommendationCardInner recommendation={recommendation} />;
+  return <RecommendationCardInner recommendation={recommendation} rationale={rationale} />;
 }
 
-const sev = {
-  HIGH:   { color: '#f56565', bg: 'rgba(245,101,101,0.13)', border: 'rgba(245,101,101,0.25)' },
-  MEDIUM: { color: '#ed8936', bg: 'rgba(237,137,54,0.13)',  border: 'rgba(237,137,54,0.25)'  },
-  LOW:    { color: '#48bb78', bg: 'rgba(72,187,120,0.13)',  border: 'rgba(72,187,120,0.25)'  },
-};
-
-function _RecommendationCardInner({ recommendation }) {
+function RecommendationCardInner({ recommendation, rationale }) {
   const isEmpty = !recommendation;
 
 
@@ -82,6 +78,17 @@ function _RecommendationCardInner({ recommendation }) {
         </div>
       ) : (
         <div style={{ padding: '18px 22px' }}>
+          {recommendation.title && (
+            <div style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: '#e2eaf4',
+              marginBottom: 8,
+              lineHeight: 1.4,
+            }}>
+              {recommendation.title}
+            </div>
+          )}
           {/* Description */}
           <p style={{
             fontSize: 13,
@@ -179,6 +186,24 @@ function _RecommendationCardInner({ recommendation }) {
               {recommendation.action}
             </div>
           </div>
+
+          {rationale && (
+            <div style={{ marginTop: 14 }}>
+              <div style={{
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: '0.10em',
+                textTransform: 'uppercase',
+                color: '#4d6278',
+                marginBottom: 6,
+              }}>
+                Why this score
+              </div>
+              <div style={{ fontSize: 12, color: '#8fa5c0', lineHeight: 1.6 }}>
+                {rationale}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

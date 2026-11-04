@@ -122,7 +122,7 @@ const S = {
   },
 };
 
-export default function Header({ lastUpdated, onRefresh }) {
+export default function Header({ lastUpdated, accountId, onRefresh }) {
   const [hovered, setHovered] = useState(null);
 
   return (
@@ -160,7 +160,7 @@ export default function Header({ lastUpdated, onRefresh }) {
           onMouseEnter={() => setHovered('aws')}
           onMouseLeave={() => setHovered(null)}
         >
-          ☁ AWS Sandbox
+          ☁ AWS {accountId || 'Sandbox'}
         </button>
 
         <button
@@ -173,7 +173,7 @@ export default function Header({ lastUpdated, onRefresh }) {
           onMouseEnter={() => setHovered('hops')}
           onMouseLeave={() => setHovered(null)}
         >
-          ⛓ Max 5 hops
+          ⛓ Contract v1.0
         </button>
 
         <button
