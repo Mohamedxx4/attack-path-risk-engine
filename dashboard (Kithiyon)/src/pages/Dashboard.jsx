@@ -7,6 +7,7 @@ import RankedAttackPaths from '../components/RankedAttackPaths';
 import PathGraphView from '../components/PathGraphView';
 import RecommendationCard from '../components/RecommendationCard';
 import Footer from '../components/Footer';
+import CursorField from '../components/CursorField';
 
 // ── Loading skeleton ────────────────────────────────────────────────────
 function SkeletonCards() {
@@ -73,6 +74,7 @@ export default function Dashboard() {
 
   return (
     <div className="page">
+      <CursorField />
       <Header
         lastUpdated={lastUpdated ? `Scored ${lastUpdated}` : '—'}
         accountId={meta?.accountId}
